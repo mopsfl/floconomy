@@ -1,9 +1,10 @@
 import { Command } from "../../modules/CommandHandler"
 import { commandHandler, emojiHandler } from "../../index";
-import { Colors } from "discord.js";
+import { Colors, User } from "discord.js";
 import Utils from "../../modules/Utils";
-import User from "../../modules/Economy/User"
+import UserManager from "../../modules/Economy/UserManager"
 import Embed from "../../modules/Misc/Embed";
+import { FloConemyUserData } from "../../modules/Economy/Types";
 
 class CommandConstructor {
     name = ["balance", "bal"]
@@ -11,15 +12,27 @@ class CommandConstructor {
     description = "Shows your balance."
 
     callback = async (command: Command) => {
-        const userData = await User.GetUserData(command.user)
+        let targetUser: User,
+            userData: FloConemyUserData
+
+        if (command.message.mentions.users.size > 0 && !command.message.mentions.everyone) {
+            targetUser = command.message.mentions.users.first()
+            userData = await UserManager.GetUserData(
+                targetUser,
+                targetUser.id !== command.user.id
+            )
+        } else {
+            userData = await UserManager.GetUserData(command.user)
+            targetUser = command.user
+        }
 
         command.message.reply({
             embeds: [
                 Embed({
                     color: Colors.Green,
                     author: {
-                        name: `${command.user.username}'s Balance`,
-                        iconURL: command.user.avatarURL()
+                        name: `${targetUser.username}'s Balance`,
+                        iconURL: targetUser.avatarURL()
                     },
                     fields: [
                         { name: `${await emojiHandler.GetEmoji("wallet")} Cash`, value: `-# ${Utils.FormatCash(userData.cash)}`, inline: true },
