@@ -1,6 +1,6 @@
 import { Command } from "../../modules/CommandHandler"
 import { commandHandler, emojiHandler } from "../../index";
-import User from "../../modules/Economy/User";
+import UserManager from "../../modules/Economy/UserManager";
 import Embed from "../../modules/Misc/Embed";
 import { bold, Colors } from "discord.js";
 
@@ -10,13 +10,15 @@ class CommandConstructor {
     description = "Shows your balance."
 
     callback = async (command: Command) => {
-        await User.IncrementValue(command.user, "cash", 100)
+        const [newData, value] = await UserManager.IncrementValue(command.user, "cash", Math.round(
+            Math.floor(Math.random() * (500 - 100)) + 100
+        ))
 
         command.message.reply({
             embeds: [
                 Embed({
                     color: Colors.Green,
-                    description: `You worked like a pro and earned ${bold("$100")}!`
+                    description: `You worked like a pro and earned ${bold("$" + value)}!`
                 })
             ]
         })
