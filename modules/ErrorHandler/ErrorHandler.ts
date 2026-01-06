@@ -26,12 +26,13 @@ export default {
     },
 
     CreateErrorEmbed(args: ErrorArgs) {
-        const errorMessage = args.error instanceof Error ? (ENV === "dev" ? args.error.stack : args.error.message) : args.error,
+        //const errorMessage = args.error instanceof Error ? (ENV === "dev" ? args.error.stack : args.error.message) : args.error,
+        const errorMessage = args.error instanceof Error ? args.error.message : args.error,
             errorName = args.error instanceof Error ? args.error.name : "Error"
 
         let embed: EmbedBuilder = null
         if (args.type === undefined || args.type === "default") {
-            embed = Embed(ErrorEmbed()).setTitle(`${Utils.GetEmoji("no")} ${args.title || errorName}`)
+            embed = Embed(ErrorEmbed())
             embed.data.fields[0].value = codeBlock(errorMessage?.slice(0, 1000) || "unknown error")
         } else if (args.type === "syntax") {
             embed = Embed(SyntaxEmbed()).setDescription(codeBlock(errorMessage?.slice(0, 1000)))

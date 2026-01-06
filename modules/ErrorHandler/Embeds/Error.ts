@@ -3,15 +3,15 @@ import config from "../../../config";
 
 export default function () {
     return {
-        title: `Error`,
+        //title: `Error`,
         color: Colors.Red,
-        timestamp: true,
+        //timestamp: true,
         fields: [
             { name: `Message:`, value: codeBlock("Error Message"), inline: false },
         ],
-        footer: {
-            text: `FloConomy`,
-            iconURL: config.icon_url,
-        }
+        //footer: {
+        //    text: `FloConomy`,
+        //    iconURL: config.icon_url,
+        //}
     }
 }
