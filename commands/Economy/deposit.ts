@@ -11,24 +11,24 @@ class CommandConstructor {
 
     callback = async (command: Command) => {
         const userData = await UserManager.GetUserData(command.user)
-        let amount = command.arguments[0]
+        const rawAmount = command.arguments[0]
 
-        if (!parseInt(amount)) {
-            if (typeof (amount) === "string" && amount.toLowerCase() === "all") {
-                amount = userData.cash
-            } else {
-                throw new SyntaxError("amount must be a number")
+        let amount: bigint
+
+        if (typeof rawAmount === "string" && rawAmount.toLowerCase() === "all") {
+            amount = userData.cash
+        } else {
+            if (!/^\d+$/.test(rawAmount)) {
+                throw new SyntaxError("you can't deposit $0")
             }
+
+            amount = BigInt(rawAmount)
         }
 
-        amount = Math.min(Math.max(parseInt(amount), Math.abs(amount)), userData.cash)
+        if (amount > userData.cash) amount = userData.cash
+        if (amount <= 0n) throw new Error(`unable to deposit $${amount.toString()}`)
 
-        if (amount <= 0) {
-            throw new Error(`unable to deposit $${amount}`)
-        }
-
-        await UserManager.IncrementValue(command.user, "cash", -amount)
-        await UserManager.IncrementValue(command.user, "bank", amount)
+        await UserManager.Deposit(command.user, amount)
 
         command.message.reply({
             embeds: [

@@ -15,7 +15,6 @@ class CommandConstructor {
             apiLatency = Math.round(client.ws.ping)
 
         await command.message.reply({ embeds: [embed.setDescription(`${Utils.GetEmoji("loading")} Pinging...`)] }).then(sent => {
-            console.log(Date.now(), sent.createdTimestamp);
             embed.setTitle("Ping Results")
                 .setColor(Colors.Green)
                 .setDescription(" ")

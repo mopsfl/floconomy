@@ -7,9 +7,9 @@ import Embed from "../../modules/Misc/Embed";
 import { FloConomyUserData } from "../../modules/Economy/Types";
 
 class CommandConstructor {
-    name = ["balance", "bal"]
+    name = ["profile", "pr"]
     category = commandHandler.CommandCategories.Economy
-    description = "Shows your balance."
+    description = "Shows your profile."
 
     callback = async (command: Command) => {
         let targetUser: User,
@@ -31,10 +31,11 @@ class CommandConstructor {
                 Embed({
                     color: Colors.Green,
                     author: {
-                        name: `${targetUser.username}'s Balance`,
+                        name: `${targetUser.username}'s Profile`,
                         iconURL: targetUser.avatarURL()
                     },
                     fields: [
+                        { name: `${await emojiHandler.GetEmoji("toolbox")} Job`, value: `-# ${userData.job}`, inline: false },
                         { name: `${await emojiHandler.GetEmoji("wallet")} Cash`, value: `-# $${Utils.FormatCash(userData.cash)}`, inline: true },
                         { name: "\u200B", value: "\u200B", inline: true },
                         { name: `${await emojiHandler.GetEmoji("bank")} Bank`, value: `-# $${Utils.FormatCash(userData.bank)}`, inline: true }

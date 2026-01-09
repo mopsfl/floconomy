@@ -18,7 +18,7 @@ const pool = mariadb.createPool({
 
 dotenv.config()
 
-export type DatabaseTable = "users"
+export type DatabaseTable = "users" | "transactions"
 
 export default {
   async Execute<T = any>(sql: string, params: any[] = []): Promise<DBResponse<T[]>> {

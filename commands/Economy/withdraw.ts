@@ -1,6 +1,8 @@
 import { Command } from "../../modules/CommandHandler"
-import { commandHandler } from "../../index";
+import { commandHandler, emojiHandler } from "../../index";
 import UserManager from "../../modules/Economy/UserManager"
+import { Colors } from "discord.js";
+import Embed from "../../modules/Misc/Embed";
 
 class CommandConstructor {
     name = ["withdraw", "with", "wd"]
@@ -9,26 +11,33 @@ class CommandConstructor {
 
     callback = async (command: Command) => {
         const userData = await UserManager.GetUserData(command.user)
-        let amount = command.arguments[0]
+        const rawAmount = command.arguments[0]
 
-        if (!parseInt(amount)) {
-            if (typeof (amount) === "string" && amount.toLowerCase() === "all") {
-                amount = userData.bank
-            } else {
-                throw new SyntaxError("amount must be a number")
+        let amount: bigint
+
+        if (typeof rawAmount === "string" && rawAmount.toLowerCase() === "all") {
+            amount = userData.bank
+        } else {
+            if (!/^\d+$/.test(rawAmount)) {
+                throw new SyntaxError("you can't withdraw $0")
             }
+
+            amount = BigInt(rawAmount)
         }
 
-        amount = Math.min(Math.max(parseInt(amount), Math.abs(amount)), userData.bank)
+        if (amount > userData.bank) amount = userData.bank
+        if (amount <= 0n) throw new Error(`unable to withdraw $${amount.toString()}`)
 
-        if (amount <= 0) {
-            throw new Error(`unable to withdraw $${amount}`)
-        }
+        await UserManager.Withdraw(command.user, amount)
 
-        await UserManager.IncrementValue(command.user, "cash", amount)
-        await UserManager.IncrementValue(command.user, "bank", -amount)
-
-        command.message.reply(`withdrawed $${amount}`)
+        command.message.reply({
+            embeds: [
+                Embed({
+                    color: Colors.Green,
+                    description: `${await emojiHandler.GetEmoji("bank")} Successfully withdrawed **$${amount}** to your wallet`
+                })
+            ]
+        })
     }
 }
 

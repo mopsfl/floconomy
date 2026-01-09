@@ -94,7 +94,7 @@ export default {
         return `${(b / Math.pow(1024, i)).toFixed(d)} ${sizes[i]}`;
     },
 
-    FormatCash(amount: number): string {
+    FormatCash(amount: any): string {
         if (amount < 1_000) return amount.toString();
 
         if (amount < 1_000_000) {
@@ -109,8 +109,7 @@ export default {
 
         const value = amount / 1_000_000_000;
         return `${Number.isInteger(value) ? value : value.toFixed(1)}B`;
-    }
-    ,
+    },
 
     GetEmoji(name: "loading" | "yes" | "no" | string) {
         return client?.emojis.cache.find(emoji => emoji.name === name)

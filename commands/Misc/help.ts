@@ -55,12 +55,14 @@ class CommandConstructor {
             })
         } else {
             let commands_field: Array<EmbedField> = []
+
             commandHandler.commands.forEach(command => {
                 if (command.hidden) return
                 if (!commands_field.find(c => c.name == command.category)) commands_field.push({ name: command.category, value: "", inline: false })
                 const index = commands_field.findIndex(c => c.name == command.category)
-                commands_field[index].value += `${bold(typeof (command.name) == "object" && command.name[0] || typeof (command.name) == "string" && command.name)}, `
-            });
+                commands_field[index].value += `${typeof (command.name) == "object" && command.name[0] || typeof (command.name) == "string" && command.name}, `
+            })
+
             commands_field.forEach(f => commands_field[commands_field.indexOf(f)].value = `-# ${f.value.replace(/,\s*$/, "")}`)
             commands_field.push({
                 name: "Note:",
