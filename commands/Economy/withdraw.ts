@@ -3,6 +3,8 @@ import { commandHandler, emojiHandler } from "../../index";
 import UserManager from "../../modules/Economy/UserManager"
 import { Colors } from "discord.js";
 import Embed from "../../modules/Misc/Embed";
+import ErrorHandler from "../../modules/Misc/ErrorHandler/Handler"
+import Dialogs from "../../modules/Dialogs";
 
 class CommandConstructor {
     name = ["withdraw", "with", "wd"]
@@ -28,15 +30,17 @@ class CommandConstructor {
         if (amount > userData.bank) amount = userData.bank
         if (amount <= 0n) throw new Error(`unable to withdraw $${amount.toString()}`)
 
-        UserManager.Withdraw(command.user, amount)
-
-        command.message.reply({
-            embeds: [
-                Embed({
-                    color: Colors.Green,
-                    description: `${await emojiHandler.GetEmoji("wallet")} Successfully withdrawed **$${amount}** to your wallet`
-                })
-            ]
+        await UserManager.Withdraw(command.user, amount).then(async () => {
+            command.message.reply({
+                embeds: [
+                    Embed({
+                        color: Colors.Green,
+                        description: `${await emojiHandler.GetEmoji("wallet")} Successfully withdrawed **$${amount}** to your wallet`
+                    })
+                ]
+            })
+        }).catch(async () => {
+            command.message.reply({ embeds: [await ErrorHandler.CreateCustomErrorEmbed(Dialogs.UNEXPECTED_ERROR)] })
         })
     }
 }

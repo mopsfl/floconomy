@@ -1,6 +1,6 @@
 // my database module thing but i used chatgpt to make it cleaner and stuff yk cuz before it looks hella goofy lol :3
 
-import mariadb from "mariadb"
+import mariadb, { PoolConnection } from "mariadb"
 import dotenv from "dotenv"
 import {
   DBResponse,
@@ -24,6 +24,7 @@ export const pool = global.__mariadbPool ?? (global.__mariadbPool = mariadb.crea
   connectionLimit: 5
 }))
 
+
 export type DatabaseTable =
   | "users"
   | "transactions"
@@ -31,7 +32,7 @@ export type DatabaseTable =
   | "bot_statistics"
 
 export default {
-  async Execute<T = any>(sql: string, params: any[] = []): Promise<DBResponse<T[]>> {
+  async Query<T = any>(sql: string, params: any[] = []): Promise<DBResponse<T[]>> {
     try {
       const rows = await pool.query(sql, params);
       return rows.length ? ok(rows) : fail("notFound", "No rows found", null, 404);
@@ -82,19 +83,33 @@ export default {
   async Update(
     table: DatabaseTable,
     updates: Record<string, any>,
-    reqQuery: Record<string, any>
+    reqQuery: Record<string, any>,
+    conn?: PoolConnection
   ): Promise<DBResponse<any>> {
     try {
       const { clause, value } = buildWhereClause(reqQuery);
-      if (!clause) return fail("invalidQuery", "Missing WHERE condition", null, 400);
+      if (!clause) {
+        return fail("invalidQuery", "Missing WHERE condition", null, 400);
+      }
 
-      const sql = `UPDATE \`${table}\` SET ${buildSetClause(updates)} WHERE ${clause}`,
-        result = await pool.query(sql, [...Object.values(updates), value]);
+      const sql = `UPDATE \`${table}\` SET ${buildSetClause(updates)} WHERE ${clause}`;
+      const executor = conn ?? pool;
 
-      return result.affectedRows > 0 ? ok(result) : fail("notFound", "No rows updated", null, 404);
+      const result = await executor.query(sql, [
+        ...Object.values(updates),
+        value
+      ]);
+
+      return result.affectedRows > 0
+        ? ok(result)
+        : fail("notFound", "No rows updated", null, 404);
     } catch (err: any) {
       console.error(err);
-      return fail(err.code ?? "updateError", err.message ?? "Update failed", err.sqlMessage ?? "Update failed");
+      return fail(
+        err.code ?? "updateError",
+        err.message ?? "Update failed",
+        err.sqlMessage ?? "Update failed"
+      );
     }
   },
 
@@ -140,6 +155,24 @@ export default {
     } catch (err: any) {
       console.error(err);
       return fail(err.code ?? "incrementError", err.message ?? "Increment failed", err.sqlMessage ?? "Increment failed");
+    }
+  },
+
+  async Transaction<T>(
+    callback: (conn: PoolConnection) => Promise<T>
+  ): Promise<T> {
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+      const result = await callback(connection);
+      await connection.commit();
+      return result;
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
     }
   }
 }

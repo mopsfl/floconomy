@@ -3,6 +3,8 @@ import { commandHandler, emojiHandler } from "../../index";
 import UserManager from "../../modules/Economy/UserManager"
 import Embed from "../../modules/Misc/Embed";
 import { Colors } from "discord.js";
+import ErrorHandler from "../../modules/Misc/ErrorHandler/Handler"
+import Dialogs from "../../modules/Dialogs";
 
 class CommandConstructor {
     name = ["deposit", "dep"]
@@ -28,15 +30,17 @@ class CommandConstructor {
         if (amount > userData.cash) amount = userData.cash
         if (amount <= 0n) throw new Error(`unable to deposit $${amount.toString()}`)
 
-        UserManager.Deposit(command.user, amount)
-
-        command.message.reply({
-            embeds: [
-                Embed({
-                    color: Colors.Green,
-                    description: `${await emojiHandler.GetEmoji("bank")} Successfully deposited **$${amount}** to your bank`
-                })
-            ]
+        await UserManager.Deposit(command.user, amount).then(async () => {
+            command.message.reply({
+                embeds: [
+                    Embed({
+                        color: Colors.Green,
+                        description: `${await emojiHandler.GetEmoji("bank")} Successfully deposited **$${amount}** to your bank`
+                    })
+                ]
+            })
+        }).catch(async () => {
+            command.message.reply({ embeds: [await ErrorHandler.CreateCustomErrorEmbed(Dialogs.UNEXPECTED_ERROR)] })
         })
     }
 }

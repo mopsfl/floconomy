@@ -1,8 +1,9 @@
 import { Command } from "../../modules/CommandHandler"
 import { commandHandler, emojiHandler } from "../../index";
 import UserManager from "../../modules/Economy/UserManager"
-import { Colors } from "discord.js";
+import { Colors, User } from "discord.js";
 import Embed from "../../modules/Misc/Embed";
+import { Transaction } from "../../modules/Economy/Types";
 
 class CommandConstructor {
     name = ["transactions", "trs"]
@@ -10,7 +11,16 @@ class CommandConstructor {
     description = "Shows your recent transactions."
 
     callback = async (command: Command) => {
-        let transactionsData = await UserManager.GetUserTransactions(command.user)
+        let targetUser: User,
+            transactionsData: Transaction[]
+
+        if (command.message.mentions?.users?.size > 0 && !command.message.mentions.everyone && !command.message.mentions.users?.first()?.bot) {
+            targetUser = command.message.mentions.users.first()
+        } else {
+            targetUser = command.user
+        }
+
+        transactionsData = await UserManager.GetUserTransactions(targetUser)
 
         const fieldValues = {
             type: "",
@@ -21,7 +31,9 @@ class CommandConstructor {
 
         transactionsData.forEach(transaction => {
             fieldValues.type += `-# ${transaction.origin !== "other" ? transaction.origin : transaction.type}\n`
-            fieldValues.amount += `-# $${transaction.amount}\n`
+            fieldValues.amount += `-# ${transaction.amount >= 0
+                ? `$${transaction.amount}`
+                : `-$${Math.abs(Number(transaction.amount))}`}\n`
             fieldValues.time += `-# <t:${Math.floor(transaction.created_at.getTime() / 1000)}:R>\n`
         })
 

@@ -1,10 +1,11 @@
 import { User } from "discord.js";
 import Database from "../Database/Database";
 import { FloConomyUserData, BalanceKey, TransactionType, USER_DEFAULTS, TransactionOrigin, Transaction } from "./Types";
+import { PoolConnection } from "mariadb/*";
 
 export default {
     async GetUserData(user: User, dontRegister?: boolean): Promise<FloConomyUserData> {
-        const response = await Database.GetTable<any>("users", {
+        const response = await Database.GetTable<FloConomyUserData>("users", {
             user_id: user.id
         })
 
@@ -16,32 +17,9 @@ export default {
             throw new Error("unable to receive user data from database")
         }
 
-        const data = response.data
-        let needsReconcile = false
-
-        for (const key in USER_DEFAULTS) {
-            if (data[key] == null) {
-                data[key] = USER_DEFAULTS[key]
-                needsReconcile = true
-            }
-        }
-
-        if (needsReconcile) {
-            Database.Update(
-                "users",
-                Object.fromEntries(
-                    Object.entries(USER_DEFAULTS).map(([k]) => [
-                        k,
-                        typeof data[k] === "bigint" ? data[k].toString() : data[k]
-                    ])
-                ),
-                { user_id: user.id }
-            )
-        }
-
         return {
             user_id: user.id,
-            ...data
+            ...response.data
         } as FloConomyUserData
     },
 
@@ -67,27 +45,28 @@ export default {
         return response.data as Transaction[]
     },
 
-    async ModifyBalance(user: User, key: BalanceKey, amount: bigint): Promise<[FloConomyUserData, bigint]> {
+    async ModifyBalance(user: User, key: BalanceKey, amount: bigint, transConn?: PoolConnection): Promise<[FloConomyUserData, bigint]> {
         const userData = await this.GetUserData(user)
-        const newValue = userData[key] + BigInt(amount)
-
+        const newValue = BigInt(userData[key]) + amount
         if (newValue < 0n) {
-            throw new Error(`${key} cannot go below 0`)
+            console.error(`${key} cannot go below 0`)
+            return
         }
-
-        userData[key] = newValue
 
         const response = await Database.Update(
             "users",
             { [key]: newValue.toString() },
-            { user_id: user.id }
+            { user_id: user.id },
+            transConn
         )
 
         if (!response.success) {
             throw new Error(response.error.sqlMessage)
         }
 
-        return [userData, amount]
+        userData[key] = newValue
+
+        return [userData, BigInt(amount)]
     },
 
     async SetValue<K extends keyof FloConomyUserData>(user: User, key: K, value: FloConomyUserData[K]) {
@@ -105,19 +84,23 @@ export default {
     async Deposit(user: User, amount: bigint) {
         if (amount <= 0n) throw new Error("Invalid amount")
 
-        await this.ModifyBalance(user, "cash", -amount)
-        await this.ModifyBalance(user, "bank", amount)
+        await Database.Transaction(async (conn) => {
+            await this.ModifyBalance(user, "bank", amount, conn)
+            await this.ModifyBalance(user, "cash", -amount, conn)
 
-        this.LogTransaction(user.id, amount, "deposit")
+            await this.LogTransaction(user.id, amount, "deposit")
+        }).catch(err => { throw err })
     },
 
     async Withdraw(user: User, amount: bigint) {
         if (amount <= 0n) throw new Error("Invalid amount")
 
-        await this.ModifyBalance(user, "bank", -amount)
-        await this.ModifyBalance(user, "cash", amount)
+        await Database.Transaction(async (conn) => {
+            await this.ModifyBalance(user, "bank", -amount, conn)
+            await this.ModifyBalance(user, "cash", amount, conn)
 
-        this.LogTransaction(user.id, amount, "withdraw")
+            await this.LogTransaction(user.id, amount, "withdraw")
+        }).catch(err => { throw err })
     },
 
     async LogTransaction(userId: string, amount: bigint, type: TransactionType, origin: TransactionOrigin = "other", targetId?: string) {
