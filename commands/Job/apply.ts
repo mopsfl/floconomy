@@ -1,7 +1,7 @@
 import { Command } from "../../modules/CommandHandler"
-import { client, commandHandler, emojiHandler } from "../../index";
+import { commandHandler, emojiHandler } from "../../index";
 import Jobs from "../../modules/Jobs/Jobs";
-import { bold, ButtonStyle, Colors, EmbedField } from "discord.js";
+import { bold, Colors, EmbedField } from "discord.js";
 import Embed from "../../modules/Misc/Embed";
 import UserManager from "../../modules/Economy/UserManager";
 import Dialogs from "../../modules/Dialogs";

@@ -1,5 +1,4 @@
-import { Colors, EmbedAuthorData, EmbedBuilder, EmbedField, EmbedFooterData, codeBlock } from "discord.js"
-import { randomUUID } from "crypto"
+import { EmbedAuthorData, EmbedBuilder, EmbedField, EmbedFooterData } from "discord.js"
 
 export default function (args: { title?: string, description?: string, color?: any, timestamp?: boolean, author?: EmbedAuthorData, thumbnail?: string, image?: string, footer?: EmbedFooterData, fields?: Array<EmbedField> }) {
     const embed = new EmbedBuilder()

@@ -1,6 +1,5 @@
-import { ApplicationEmoji, bold, inlineCode } from "discord.js";
+import { inlineCode } from "discord.js";
 import config from "../config";
-import { emojiHandler } from "../index";
 
 export default {
     JOB: {

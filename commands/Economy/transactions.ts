@@ -1,7 +1,7 @@
 import { Command } from "../../modules/CommandHandler"
 import { commandHandler, emojiHandler } from "../../index";
 import UserManager from "../../modules/Economy/UserManager"
-import { Colors, EmbedField } from "discord.js";
+import { Colors } from "discord.js";
 import Embed from "../../modules/Misc/Embed";
 
 class CommandConstructor {
