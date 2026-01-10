@@ -108,13 +108,18 @@ export default {
 
         for (const [value, suffix] of ranges) {
             if (amount >= value) {
-                const num = Number(amount) / Number(value)
-                const formatted = num.toFixed(1).replace(/\.0$/, "")
-                return `${formatted}${suffix}`
+                const whole = amount / value
+                const remainder = amount % value
+
+                const decimal = (remainder * 10n) / value
+
+                return decimal === 0n
+                    ? `${whole}${suffix}`
+                    : `${whole}.${decimal}${suffix}`
             }
         }
 
-        return amount.toString()
+        return amount.toString();
     },
 
     GetEmoji(name: "loading" | "yes" | "no" | string) {
