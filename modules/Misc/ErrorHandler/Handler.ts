@@ -1,9 +1,7 @@
 import { ChatInputCommandInteraction, codeBlock, EmbedBuilder, inlineCode, Message, MessageFlags } from "discord.js"
-import Embed from "../Misc/Embed";
-import Utils from "../Utils";
+import Embed from "../../Misc/Embed";
 import ErrorEmbed from "./Embeds/Error";
 import SyntaxEmbed from "./Embeds/Syntax";
-import { ENV } from "../../index";
 
 export default {
     async new(args: ErrorArgs) {

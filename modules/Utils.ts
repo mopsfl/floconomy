@@ -94,21 +94,27 @@ export default {
         return `${(b / Math.pow(1024, i)).toFixed(d)} ${sizes[i]}`;
     },
 
-    FormatCash(amount: any): string {
-        if (amount < 1_000) return amount.toString();
+    FormatCash(amount: bigint): string {
+        const ranges: [bigint, string][] = [
+            [1_000_000_000_000_000_000n, "Qi"],
+            [1_000_000_000_000_000n, "Qa"],
+            [1_000_000_000_000n, "T"],
+            [1_000_000_000n, "B"],
+            [1_000_000n, "M"],
+            [1_000n, "K"]
+        ]
 
-        if (amount < 1_000_000) {
-            const value = amount / 1_000;
-            return `${Number.isInteger(value) ? value : value.toFixed(1)}K`;
+        if (amount < 1_000n) return amount.toString()
+
+        for (const [value, suffix] of ranges) {
+            if (amount >= value) {
+                const num = Number(amount) / Number(value)
+                const formatted = num.toFixed(1).replace(/\.0$/, "")
+                return `${formatted}${suffix}`
+            }
         }
 
-        if (amount < 1_000_000_000) {
-            const value = amount / 1_000_000;
-            return `${Number.isInteger(value) ? value : value.toFixed(1)}M`;
-        }
-
-        const value = amount / 1_000_000_000;
-        return `${Number.isInteger(value) ? value : value.toFixed(1)}B`;
+        return amount.toString()
     },
 
     GetEmoji(name: "loading" | "yes" | "no" | string) {

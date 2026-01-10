@@ -1,6 +1,6 @@
 import { codeBlock, Colors, inlineCode } from "discord.js";
-import config from "../../../config";
-import Utils from "../../Utils";
+import config from "../../../../config";
+import Utils from "../../../Utils";
 
 export default function () {
     return {
