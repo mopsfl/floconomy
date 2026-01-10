@@ -5,5 +5,5 @@ export class CashierJob {
         user: User
     ) { }
 
-
+    public jobName = "Cashier"
 }
