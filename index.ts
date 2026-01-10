@@ -1,8 +1,5 @@
 import express from "express"
 import dotenv from "dotenv"
-import cors from "cors"
-
-import Database from "./modules/Database/Database";
 import CommandHandler from "./modules/CommandHandler";
 import EmojiHandler from "./modules/Misc/EmojiHandler"
 
