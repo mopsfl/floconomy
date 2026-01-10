@@ -19,7 +19,7 @@ class CommandConstructor {
             amount = userData.bank
         } else {
             if (!/^\d+$/.test(rawAmount)) {
-                throw new SyntaxError("you can't withdraw $0")
+                throw new SyntaxError("You can't withdraw $0!")
             }
 
             amount = BigInt(rawAmount)
@@ -28,13 +28,13 @@ class CommandConstructor {
         if (amount > userData.bank) amount = userData.bank
         if (amount <= 0n) throw new Error(`unable to withdraw $${amount.toString()}`)
 
-        await UserManager.Withdraw(command.user, amount)
+        UserManager.Withdraw(command.user, amount)
 
         command.message.reply({
             embeds: [
                 Embed({
                     color: Colors.Green,
-                    description: `${await emojiHandler.GetEmoji("bank")} Successfully withdrawed **$${amount}** to your wallet`
+                    description: `${await emojiHandler.GetEmoji("wallet")} Successfully withdrawed **$${amount}** to your wallet`
                 })
             ]
         })

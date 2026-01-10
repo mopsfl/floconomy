@@ -19,7 +19,7 @@ class CommandConstructor {
             amount = userData.cash
         } else {
             if (!/^\d+$/.test(rawAmount)) {
-                throw new SyntaxError("you can't deposit $0")
+                throw new SyntaxError("You can't deposit $0!")
             }
 
             amount = BigInt(rawAmount)
@@ -28,7 +28,7 @@ class CommandConstructor {
         if (amount > userData.cash) amount = userData.cash
         if (amount <= 0n) throw new Error(`unable to deposit $${amount.toString()}`)
 
-        await UserManager.Deposit(command.user, amount)
+        UserManager.Deposit(command.user, amount)
 
         command.message.reply({
             embeds: [
