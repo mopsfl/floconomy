@@ -9,16 +9,26 @@ import {
   buildWhereClause
 } from "./Helpers";
 
-const pool = mariadb.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-})
+declare global {
+  var __mariadbPool: mariadb.Pool | undefined;
+}
 
 dotenv.config()
 
-export type DatabaseTable = "users" | "transactions"
+export const pool = global.__mariadbPool ?? (global.__mariadbPool = mariadb.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT),
+  connectionLimit: 5
+}))
+
+export type DatabaseTable =
+  | "users"
+  | "transactions"
+  | "command_stats"
+  | "bot_statistics"
 
 export default {
   async Execute<T = any>(sql: string, params: any[] = []): Promise<DBResponse<T[]>> {
@@ -36,18 +46,19 @@ export default {
     reqQuery?: Record<string, any>,
     latest = false,
     limit?: number,
-    desc?: boolean
+    desc?: boolean,
+    single = true
   ): Promise<DBResponse<T>> {
     try {
       const { clause, value } = buildWhereClause(reqQuery);
       let sql = `SELECT * FROM \`${table}\`${clause ? " WHERE " + clause : ""}`;
-      if (latest) { sql += " ORDER BY time DESC" } else if (desc) { sql += " ORDER BY time DESC" }
+      if (latest) { sql += " ORDER BY created_at DESC" } else if (desc) { sql += " ORDER BY created_at DESC" }
       if (latest) { sql += " LIMIT 1" } else if (limit) { sql += ` LIMIT ${limit}` }
 
       const rows = await pool.query(sql, clause ? [value] : []);
       if (!rows.length) return fail("notFound", "No rows found", null, 404);
 
-      return ok(latest || clause ? rows[0] : rows);
+      return ok(single ? rows[0] : rows);
     } catch (err: any) {
       console.error(err.message);
       return fail(err.code ?? "queryError", err.message ?? "Query failed", err.sqlMessage ?? "Query failed");
@@ -131,6 +142,4 @@ export default {
       return fail(err.code ?? "incrementError", err.message ?? "Increment failed", err.sqlMessage ?? "Increment failed");
     }
   }
-};
-
-export { pool }
+}
