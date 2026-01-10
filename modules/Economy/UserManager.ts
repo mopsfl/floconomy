@@ -1,6 +1,6 @@
 import { User } from "discord.js";
 import Database from "../Database/Database";
-import { FloConomyUserData, BalanceKey, TransactionType, USER_DEFAULTS } from "./Types";
+import { FloConomyUserData, BalanceKey, TransactionType, USER_DEFAULTS, TransactionOrigin, Transaction } from "./Types";
 
 export default {
     async GetUserData(user: User, dontRegister?: boolean): Promise<FloConomyUserData> {
@@ -45,7 +45,29 @@ export default {
         } as FloConomyUserData
     },
 
-    async ModifyBalance(user: User, key: BalanceKey, amount: number): Promise<[FloConomyUserData, number]> {
+    async GetUserTransactions(user: User) {
+        const response = await Database.GetTable(
+            "transactions",
+            { user_id: user.id },
+            false,
+            10,
+            true,
+            false
+        )
+
+        if (!response.success) {
+            if (response.error.code === "notFound") {
+                throw new Error("You don't have any transactions yet!")
+            }
+
+            console.error(response.error)
+            throw new Error("unable to receive transactions data from database")
+        }
+
+        return response.data as Transaction[]
+    },
+
+    async ModifyBalance(user: User, key: BalanceKey, amount: bigint): Promise<[FloConomyUserData, bigint]> {
         const userData = await this.GetUserData(user)
         const newValue = userData[key] + BigInt(amount)
 
@@ -68,13 +90,25 @@ export default {
         return [userData, amount]
     },
 
+    async SetValue<K extends keyof FloConomyUserData>(user: User, key: K, value: FloConomyUserData[K]) {
+        const response = await Database.Update(
+            "users",
+            { [key]: value },
+            { user_id: user.id }
+        )
+
+        if (!response.success) {
+            throw new Error(response.error.sqlMessage)
+        }
+    },
+
     async Deposit(user: User, amount: bigint) {
         if (amount <= 0n) throw new Error("Invalid amount")
 
         await this.ModifyBalance(user, "cash", -amount)
         await this.ModifyBalance(user, "bank", amount)
 
-        await this.LogTransaction(user.id, "deposit", amount)
+        this.LogTransaction(user.id, amount, "deposit")
     },
 
     async Withdraw(user: User, amount: bigint) {
@@ -83,15 +117,17 @@ export default {
         await this.ModifyBalance(user, "bank", -amount)
         await this.ModifyBalance(user, "cash", amount)
 
-        await this.LogTransaction(user.id, "withdraw", amount)
+        this.LogTransaction(user.id, amount, "withdraw")
     },
 
-    async LogTransaction(userId: string, type: TransactionType, amount: bigint, targetId?: string) {
+    async LogTransaction(userId: string, amount: bigint, type: TransactionType, origin: TransactionOrigin = "other", targetId?: string) {
         await Database.Insert("transactions", {
             user_id: userId,
             target_id: targetId ?? null,
+            origin: origin,
             type,
-            amount
+            amount,
+            created_at: new Date()
         })
     },
 
@@ -115,7 +151,8 @@ export default {
             user_id: userId,
             job: "Unemployed",
             cash: 0n,
-            bank: 0n
+            bank: 0n,
+            last_worked: null,
         }
     }
 }
