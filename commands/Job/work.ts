@@ -50,20 +50,20 @@ class CommandConstructor {
         }
 
         const job = Object.values(Jobs).find(j => j.jobName.toLowerCase() === userData.job.toLowerCase()),
-            [newData, value] = await UserManager.ModifyBalance(command.user, "cash", BigInt(
-                Math.round(Math.floor(Math.random() * (job.salary[1] - job.salary[0])) + job.salary[0]))
-            )
+            salary = BigInt(Math.round(Math.floor(Math.random() * (job.salary[1] - job.salary[0])) + job.salary[0]))
+
+        await UserManager.ModifyBalance(command.user, "cash", salary)
 
         command.message.reply({
             embeds: [
                 Embed({
                     color: Colors.Green,
-                    description: `You've worked as a ${bold(userData.job)} and earned ${bold("$" + value.toString())}!`
+                    description: `You've worked as a ${bold(userData.job)} and earned ${bold("$" + salary.toString())}!`
                 })
             ]
         })
 
-        UserManager.LogTransaction(command.user.id, value, "economy_add", "salary")
+        UserManager.LogTransaction(command.user.id, salary, "economy_modify", "salary")
         await UserManager.SetValue(command.user, "last_worked", new Date())
     }
 }

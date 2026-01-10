@@ -29,13 +29,14 @@ export type BalanceKey = "cash" | "bank"
 export type TransactionOrigin =
     | "other"
     | "salary"
+    | "robbery"
 
 export type TransactionType =
     | "deposit"
     | "withdraw"
     | "transfer"
     | "economy_set"
-    | "economy_add"
+    | "economy_modify"
     | "admin_set"
     | "admin_add"
 

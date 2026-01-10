@@ -1,7 +1,8 @@
-import { ChatInputCommandInteraction, codeBlock, EmbedBuilder, inlineCode, Message, MessageFlags } from "discord.js"
+import { ChatInputCommandInteraction, codeBlock, Colors, EmbedBuilder, inlineCode, Message, MessageFlags } from "discord.js"
 import Embed from "../../Misc/Embed";
 import ErrorEmbed from "./Embeds/Error";
 import SyntaxEmbed from "./Embeds/Syntax";
+import { emojiHandler } from "../../../index";
 
 export default {
     async new(args: ErrorArgs) {
@@ -38,6 +39,16 @@ export default {
         }
 
         return embed
+    },
+
+    async CreateCustomErrorEmbed(error: string) {
+        return Embed({
+            color: Colors.Red,
+            author: {
+                name: error || "unknown error",
+                iconURL: (await emojiHandler.GetEmoji("fail"))?.imageURL()
+            }
+        })
     }
 }
 
