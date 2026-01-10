@@ -1,8 +1,8 @@
 import path from "path";
 import config from "../config"
 import fs from "fs"
-import { discordREST } from "../index";
-import ErrorHandler from "./ErrorHandler/ErrorHandler";
+import { discordREST, ENV } from "../index";
+import ErrorHandler from "./Misc/ErrorHandler/Handler"
 import {
     APIInteractionGuildMember,
     ChatInputCommandInteraction,
@@ -13,6 +13,7 @@ import {
     Routes,
     User
 } from "discord.js";
+import Database from "./Database/Database";
 
 export default class CommandHandler {
     constructor(
@@ -25,6 +26,7 @@ export default class CommandHandler {
 
         public CommandCategories = {
             Economy: "Economy",
+            Jobs: "Jobs",
             Misc: "Misc",
             Admin: "Admin"
         },
@@ -51,7 +53,7 @@ export default class CommandHandler {
 
         if (this.cooldowns.get(command.user.id)) {
             if ((Date.now() - this.cooldowns.get(command.user.id)) < 1000) {
-                ErrorHandler.new({
+                await ErrorHandler.new({
                     message: command.message,
                     error: `You are using commands too fast! Please wait...`,
                     ttl: 2000
@@ -67,7 +69,7 @@ export default class CommandHandler {
             console.log(`> command '${command.name}', requested by '${this.GetInvokerName(command)}', finished in ${Date.now() - command.timestamp}ms (id: ${command.id})`)
             this.UpdateCommandStatistic(command)
         } catch (error) {
-            ErrorHandler.new({
+            await ErrorHandler.new({
                 message: command.message,
                 error: error
             })
@@ -226,16 +228,17 @@ export default class CommandHandler {
     }
 
     public async UpdateCommandStatistic(command: Command) {
-        /*if (ENV === "dev") return
-        await Database.RowExists("cmd_stats", { command_name: command.name }).then(async exists => {
+        //if (ENV === "dev") return
+
+        await Database.RowExists("command_stats", { name: command.name }).then(async exists => {
             if (!exists) {
-                await Database.Insert("cmd_stats", { command_name: command.name, call_count: 1 }).catch(console.error)
+                await Database.Insert("command_stats", { name: command.name, count: 1 }).catch(console.error)
             } else {
-                await Database.Increment("cmd_stats", "call_count", { command_name: command.name }).catch(console.error)
+                await Database.Increment("command_stats", "count", { name: command.name }).catch(console.error)
             }
         })
 
-        await Database.Increment("bot_statistics", "total_commands_executed").catch(console.error)*/
+        await Database.Increment("bot_statistics", "total_commands_executed").catch(console.error)
     }
 }
 
