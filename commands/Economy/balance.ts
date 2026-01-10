@@ -15,8 +15,9 @@ class CommandConstructor {
         let targetUser: User,
             userData: FloConomyUserData
 
-        if (command.message.mentions.users.size > 0 && !command.message.mentions.everyone) {
+        if (command.message.mentions?.users?.size > 0 && !command.message.mentions.everyone && !command.message.mentions.users?.first()?.bot) {
             targetUser = command.message.mentions.users.first()
+
             userData = await UserManager.GetUserData(
                 targetUser,
                 targetUser.id !== command.user.id
