@@ -5,6 +5,7 @@
         "moduleResolution": "NodeNext",
         "outDir": "./dist",
         "types": ["node"],
+        "strict": false
     },
     "exclude": [
         "dist",
