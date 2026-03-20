@@ -54,9 +54,6 @@ class CommandConstructor {
         await Database.Transaction(async (conn) => {
             await UserManager.ModifyBalance(targetUser, "cash", -stealAmount, conn)
             await UserManager.ModifyBalance(command.user, "cash", stealAmount, conn)
-
-            UserManager.LogTransaction(targetUser.id, -stealAmount, "economy_modify", "robbery")
-            UserManager.LogTransaction(command.user.id, stealAmount, "economy_modify", "robbery")
         }).then(async () => {
             command.message.reply({
                 embeds: [
@@ -66,6 +63,9 @@ class CommandConstructor {
                     })
                 ]
             })
+
+            UserManager.LogTransaction(targetUser.id, -stealAmount, "economy_modify", "robbery")
+            UserManager.LogTransaction(command.user.id, stealAmount, "economy_modify", "robbery")
         }).catch(async () => {
             command.message.reply({ embeds: [await ErrorHandler.CreateCustomErrorEmbed(Dialogs.UNEXPECTED_ERROR)] })
         })

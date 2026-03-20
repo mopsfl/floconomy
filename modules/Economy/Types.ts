@@ -30,6 +30,7 @@ export type TransactionOrigin =
     | "other"
     | "salary"
     | "robbery"
+    | "pay"
 
 export type TransactionType =
     | "deposit"

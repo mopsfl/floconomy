@@ -1,6 +1,6 @@
 import { User } from "discord.js";
 import Database from "../Database/Database";
-import { FloConomyUserData, BalanceKey, TransactionType, USER_DEFAULTS, TransactionOrigin, Transaction } from "./Types";
+import { FloConomyUserData, BalanceKey, TransactionType, TransactionOrigin, Transaction } from "./Types";
 import { PoolConnection } from "mariadb/*";
 
 export default {

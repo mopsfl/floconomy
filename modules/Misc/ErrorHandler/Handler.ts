@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, codeBlock, Colors, EmbedBuilder, inlineCode, Message, MessageFlags } from "discord.js"
+import { bold, ChatInputCommandInteraction, codeBlock, Colors, EmbedBuilder, inlineCode, Message, MessageFlags } from "discord.js"
 import Embed from "../../Misc/Embed";
 import ErrorEmbed from "./Embeds/Error";
 import SyntaxEmbed from "./Embeds/Syntax";
@@ -32,7 +32,7 @@ export default {
         let embed: EmbedBuilder = null
         if (args.type === undefined || args.type === "default") {
             embed = Embed(ErrorEmbed())
-            embed.data.fields[0].value = codeBlock(errorMessage?.slice(0, 1000) || "unknown error")
+            embed.setDescription(`${bold("Error:")} ${errorMessage?.slice(0, 1000) || "unknown error"}`)
         } else if (args.type === "syntax") {
             embed = Embed(SyntaxEmbed()).setDescription(codeBlock(errorMessage?.slice(0, 1000)))
             embed.data.fields[0].value = `-# ${args.syntax ? inlineCode(args.syntax) : inlineCode("unknown command syntax :(")}`

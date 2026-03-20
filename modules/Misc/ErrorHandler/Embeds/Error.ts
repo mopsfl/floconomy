@@ -6,9 +6,9 @@ export default function () {
         //title: `Error`,
         color: Colors.Red,
         //timestamp: true,
-        fields: [
-            { name: `Message:`, value: codeBlock("Error Message"), inline: false },
-        ],
+        //fields: [
+        //{ name: `Message:`, value: codeBlock("Error Message"), inline: false },
+        //],
         //footer: {
         //    text: `FloConomy`,
         //    iconURL: config.icon_url,

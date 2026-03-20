@@ -28,7 +28,6 @@ class CommandConstructor {
             time: ""
         }
 
-
         transactionsData.forEach(transaction => {
             fieldValues.type += `-# ${transaction.origin !== "other" ? transaction.origin : transaction.type}\n`
             fieldValues.amount += `-# ${transaction.amount >= 0
