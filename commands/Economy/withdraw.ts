@@ -7,28 +7,59 @@ import ErrorHandler from "../../modules/Misc/ErrorHandler/Handler"
 import Dialogs from "../../modules/Dialogs";
 
 class CommandConstructor {
-    name = ["withdraw", "with", "wd"]
+    name = ["withdraw", "with", "wd", "w"]
     category = commandHandler.CommandCategories.Economy
     description = "Withdraw money from your bank to your wallet."
 
     callback = async (command: Command) => {
         const userData = await UserManager.GetUserData(command.user)
-        const rawAmount = command.arguments[0]
 
-        let amount: bigint
+        const rawAmount = command.arguments[0]?.toLowerCase();
 
-        if (typeof rawAmount === "string" && rawAmount.toLowerCase() === "all") {
-            amount = userData.bank
-        } else {
-            if (!/^\d+$/.test(rawAmount)) {
-                throw new SyntaxError("You can't withdraw $0!")
+        let amount: bigint;
+
+        if (rawAmount === "all") {
+            amount = userData.bank;
+        } else if (rawAmount === "half") {
+            amount = userData.bank / 2n;
+        } else if (rawAmount && /^\d+%$/.test(rawAmount)) {
+            const percentage = BigInt(rawAmount.slice(0, -1));
+
+            if (percentage > 100n) {
+                throw new SyntaxError("Percentage must be between 0% and 100%!");
             }
 
-            amount = BigInt(rawAmount)
+            amount = (userData.bank * percentage) / 100n;
+        } else if (rawAmount && /^\d+\/\d+$/.test(rawAmount)) {
+            const [numeratorStr, denominatorStr] = rawAmount.split("/");
+
+            const numerator = BigInt(numeratorStr);
+            const denominator = BigInt(denominatorStr);
+
+            if (denominator === 0n) {
+                throw new SyntaxError("The denominator cannot be zero!");
+            }
+
+            if (numerator > denominator) {
+                throw new SyntaxError("The fraction cannot be greater than 1!");
+            }
+
+            amount = (userData.bank * numerator) / denominator;
+        } else {
+            if (!rawAmount || !/^\d+$/.test(rawAmount)) {
+                throw new SyntaxError(
+                    "Invalid amount! Use a number, 'half', 'all', a percentage (50%), or a fraction (1/3)."
+                );
+            }
+
+            amount = BigInt(rawAmount);
         }
 
-        if (amount > userData.bank) amount = userData.bank
-        if (amount <= 0n) throw new Error(`unable to withdraw $${amount.toString()}`)
+        if (amount > userData.bank) amount = userData.bank;
+
+        if (amount <= 0n) {
+            throw new Error("You must withdraw at least $1!");
+        }
 
         await UserManager.Withdraw(command.user, amount).then(async () => {
             command.message.reply({

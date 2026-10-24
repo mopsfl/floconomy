@@ -11,7 +11,7 @@ class CommandConstructor {
     name = ["give", "pay"]
     syntax_usage = "<user>"
     category = commandHandler.CommandCategories.Economy
-    description = "Pay / give someone money."
+    description = "Give someone money."
 
     callback = async (command: Command) => {
         let targetUser: User,
@@ -31,20 +31,48 @@ class CommandConstructor {
             return
         }
 
-        let amount: bigint
+        let amount: bigint;
 
-        if (typeof rawAmount === "string" && rawAmount.toLowerCase() === "all") {
-            amount = userData.cash
-        } else {
-            if (!/^\d+$/.test(rawAmount)) {
-                throw new SyntaxError("You can't pay $0!")
+        if (rawAmount === "all") {
+            amount = userData.cash;
+        } else if (rawAmount === "half") {
+            amount = userData.cash / 2n;
+        } else if (rawAmount && /^\d+%$/.test(rawAmount)) {
+            const percentage = BigInt(rawAmount.slice(0, -1));
+
+            if (percentage > 100n) {
+                throw new SyntaxError("Percentage must be between 0% and 100%!");
             }
 
-            amount = BigInt(rawAmount)
+            amount = (userData.cash * percentage) / 100n;
+        } else if (rawAmount && /^\d+\/\d+$/.test(rawAmount)) {
+            const [numeratorStr, denominatorStr] = rawAmount.split("/");
+
+            const numerator = BigInt(numeratorStr);
+            const denominator = BigInt(denominatorStr);
+
+            if (denominator === 0n) {
+                throw new SyntaxError("The denominator cannot be zero!");
+            }
+
+            if (numerator > denominator) {
+                throw new SyntaxError("The fraction cannot be greater than 1!");
+            }
+
+            amount = (userData.cash * numerator) / denominator;
+        } else {
+            if (!rawAmount || !/^\d+$/.test(rawAmount)) {
+                throw new SyntaxError("Invalid amount! Use a number, 'half', 'all', a percentage (50%), or a fraction (1/3).");
+            }
+
+            amount = BigInt(rawAmount);
         }
 
-        if (amount > userData.cash) amount = userData.cash
-        if (amount <= 0n) throw new Error(`unable to pay $${amount.toString()}`)
+        if (amount > userData.cash) amount = userData.cash;
+
+        if (amount <= 0n) {
+            throw new Error("You must deposit at least $1!");
+        }
 
         await Database.Transaction(async (conn) => {
             await UserManager.ModifyBalance(targetUser, "cash", amount, conn)

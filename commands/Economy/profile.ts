@@ -9,7 +9,7 @@ import { FloConomyUserData } from "../../modules/Economy/Types";
 class CommandConstructor {
     name = ["profile", "pr"]
     category = commandHandler.CommandCategories.Economy
-    description = "Shows your profile."
+    description = "Shows your or someone elses profile."
 
     callback = async (command: Command) => {
         let targetUser: User,

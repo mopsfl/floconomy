@@ -6,7 +6,7 @@ import Embed from "../../modules/Misc/Embed";
 import { Transaction } from "../../modules/Economy/Types";
 
 class CommandConstructor {
-    name = ["transactions", "trs"]
+    name = ["transactions", "trs", "t"]
     category = commandHandler.CommandCategories.Economy
     description = "Shows your recent transactions."
 

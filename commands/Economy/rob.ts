@@ -26,7 +26,7 @@ class CommandConstructor {
                 targetUser.id !== command.user.id
             )
         } else {
-            command.message.reply({ embeds: [await ErrorHandler.CreateCustomErrorEmbed(Dialogs.ROBBERY.INVALID_TARGET)] })
+            command.message.reply({ embeds: [await ErrorHandler.CreateCustomErrorEmbed(Dialogs.INVALID_TARGET)] })
             return
         }
 

@@ -11,7 +11,8 @@ export default {
         UNKNOWN_JOB: `This is not a valid job!`,
         APPLY_FOR_JOB: `-# Apply for one using ${inlineCode(config.prefix + "apply")} to start earning money.`,
         APPLY_CONFIRM: `-# Would you like to apply for this job?`,
-        WORK_COOLDOWN: `You can't work right now!`
+        WORK_COOLDOWN: `You can't work right now!`,
+        QUIT_JOB: `You quit your job!`
     },
 
     ROBBERY: {
